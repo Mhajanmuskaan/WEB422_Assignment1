@@ -6,15 +6,38 @@ const ListingsDB = require("./modules/listingsDB.js");
 const db = new ListingsDB();
 
 const app = express();
+let isDbInitialized = false;
 
 app.use(cors());
 app.use(express.json());
+
+// Lazy database initialization
+async function ensureDbInitialized() {
+    if (!isDbInitialized) {
+        try {
+            await db.initialize(process.env.MONGODB_CONN_STRING);
+            isDbInitialized = true;
+        } catch (err) {
+            console.error("Failed to initialize database:", err);
+            throw err;
+        }
+    }
+}
+
+// Apply to all requests
+app.use(async (req, res, next) => {
+    try {
+        await ensureDbInitialized();
+        next();
+    } catch (err) {
+        res.status(500).json({ message: "Database initialization failed", error: err.message });
+    }
+});
 
 app.get("/", (req, res) => {
     res.json({ message: "API listening" });
 });
 
-// POST /api/listings - Add a new listing
 app.post("/api/listings", (req, res) => {
     db.addNewListing(req.body).then(data => {
         res.status(201).json(data);
@@ -23,7 +46,6 @@ app.post("/api/listings", (req, res) => {
     });
 });
 
-// GET /api/listings?page=1&perPage=5&name=optionalName
 app.get("/api/listings", (req, res) => {
     const page = parseInt(req.query.page);
     const perPage = parseInt(req.query.perPage);
@@ -40,7 +62,6 @@ app.get("/api/listings", (req, res) => {
     });
 });
 
-// GET /api/listings/:id - Get listing by ID
 app.get("/api/listings/:id", (req, res) => {
     db.getListingById(req.params.id).then(data => {
         if (!data) {
@@ -53,7 +74,6 @@ app.get("/api/listings/:id", (req, res) => {
     });
 });
 
-// PUT /api/listings/:id - Update listing by ID
 app.put("/api/listings/:id", (req, res) => {
     db.updateListingById(req.body, req.params.id).then(() => {
         res.status(204).end();
@@ -62,7 +82,6 @@ app.put("/api/listings/:id", (req, res) => {
     });
 });
 
-// DELETE /api/listings/:id - Delete listing by ID
 app.delete("/api/listings/:id", (req, res) => {
     db.deleteListingById(req.params.id).then(() => {
         res.status(204).end();
@@ -71,9 +90,5 @@ app.delete("/api/listings/:id", (req, res) => {
     });
 });
 
-// Initialize DB and export app for Vercel
-db.initialize(process.env.MONGODB_CONN_STRING).catch((err) => {
-    console.error("Failed to connect to MongoDB:", err);
-});
-
+// DO NOT call app.listen() — Vercel handles that
 module.exports = app;
