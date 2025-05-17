@@ -6,7 +6,6 @@ const ListingsDB = require("./modules/listingsDB.js");
 const db = new ListingsDB();
 
 const app = express();
-const HTTP_PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -15,12 +14,10 @@ app.get("/", (req, res) => {
     res.json({ message: "API listening" });
 });
 
-
-
 // POST /api/listings - Add a new listing
 app.post("/api/listings", (req, res) => {
     db.addNewListing(req.body).then(data => {
-        res.status(201).json(data); // 201 = Created
+        res.status(201).json(data);
     }).catch(err => {
         res.status(500).json({ message: "Failed to add listing", error: err });
     });
@@ -59,7 +56,7 @@ app.get("/api/listings/:id", (req, res) => {
 // PUT /api/listings/:id - Update listing by ID
 app.put("/api/listings/:id", (req, res) => {
     db.updateListingById(req.body, req.params.id).then(() => {
-        res.status(204).end(); // 204 = No Content (success, no response body)
+        res.status(204).end();
     }).catch(err => {
         res.status(500).json({ message: "Failed to update listing", error: err });
     });
@@ -68,19 +65,15 @@ app.put("/api/listings/:id", (req, res) => {
 // DELETE /api/listings/:id - Delete listing by ID
 app.delete("/api/listings/:id", (req, res) => {
     db.deleteListingById(req.params.id).then(() => {
-        res.status(204).end(); // 204 = No Content
+        res.status(204).end();
     }).catch(err => {
         res.status(500).json({ message: "Failed to delete listing", error: err });
     });
 });
 
-
-
-// Connect to MongoDB and start the server
-db.initialize(process.env.MONGODB_CONN_STRING).then(() => {
-    app.listen(HTTP_PORT, () => {
-        console.log(`Server listening on port ${HTTP_PORT}`);
-    });
-}).catch((err) => {
+// Initialize DB and export app for Vercel
+db.initialize(process.env.MONGODB_CONN_STRING).catch((err) => {
     console.error("Failed to connect to MongoDB:", err);
 });
+
+module.exports = app;
