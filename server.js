@@ -90,5 +90,13 @@ app.delete("/api/listings/:id", (req, res) => {
     });
 });
 
-// DO NOT call app.listen() — Vercel handles that
+// Only run the server if this file is executed directly (not required as a module by Vercel)
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
+
+// Export for Vercel
 module.exports = app;
