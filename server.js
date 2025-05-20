@@ -1,3 +1,18 @@
+
+/********************************************************************************
+* WEB422 – Assignment 1
+*
+* I declare that this assignment is my own work in accordance with Seneca's
+* Academic Integrity Policy:
+*
+* https://www.senecapolytechnic.ca/about/policies/academic-integrity-policy.html
+*
+* Name: _Muskaan Mahajan   Student ID: 165874231  Date: _19-05-2025
+*
+* Published URL: ___________________________________________________________
+*
+********************************************************************************/
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
